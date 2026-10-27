@@ -1,0 +1,44 @@
+{
+  //情景展示名（左上角显示「第N天 · 展示名」）
+  "displayName": "第 1 天 · 白天",
+  //背景图：stories/ 下的文件名
+  "background": "bg.png",
+  //入场词
+  "narration": "【开场】你第一次见到她。",
+  "atmosphere": "午后的光斜斜落在桌角。",
+
+  //角色控制：scenePrompt 是本情景的额外提示词
+  "characters": [
+    {
+      "charId": "demo",
+      "state": "便服",
+      "emotion": "平常",
+      "scenePrompt": "这是你们第一次见面，地点在教室。她对你还很陌生，话很少，只用短句回应。"
+    }
+  ],
+
+  //进入本情景时变化的值：正数为加、负数为减（这里不动任何值）
+  "fixedEffects": [],
+
+  //离场结算：注册允许引擎判断并变化的变量
+  "judgePrompt": "根据本场景对话给「demo好感」「demo信任」的整数增量；无明确证据则全 0。只输出 JSON：{\"deltas\":{\"demo好感\":0,\"demo信任\":0}}",
+  "vars": ["demo好感", "demo信任"],
+  "maxAbsDelta": 3,
+  "onNoEvidence": "zero",
+
+  //离开判断：自上而下首个 require 成立的块被锁定；块内多个 kind 等概率
+  "target": [
+    {
+      "require": "\"demo好感\" < 20",
+      "kind": [
+        { "kind": "event", "to": "end_demo" }
+      ]
+    },
+    {
+      //没有 require 的块无条件成立（保底）
+      "kind": [
+        { "kind": "story", "to": "s1" }
+      ]
+    }
+  ]
+}

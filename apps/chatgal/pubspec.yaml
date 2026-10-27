@@ -1,0 +1,44 @@
+name: chatgal
+description: "ChatGal — AI Gal content client (Android first)."
+publish_to: 'none'
+version: 0.1.6+7
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  file_picker: ^12.0.0
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  gal_protocol:
+    path: ../../packages/gal_protocol
+  gal_ai:
+    path: ../../packages/gal_ai
+  gal_storage:
+    path: ../../packages/gal_storage
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+# 端侧推理已从本体拆出去（见 docs/推理引擎.md）：本包不再依赖 llamadart，
+# 于是 APK 里既没有 llama.cpp 也没有 LiteRT-LM 的 native 库，体积回到只含
+# 内容包与 UI 的水平。要用本机推理就装独立的「ChatGal 本地推理引擎」，
+# 再在「模型供应商」里填它的地址（http://127.0.0.1:<端口>/v1）。
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/hellojj_default.chatgal
+    - assets/hellojj_daily.chatgal
+    - assets/app_icon.png
+  fonts:
+    # 聊天用的「可爱圆体」预设：站酷快乐体（SIL OFL 1.1），自带中文字形。
+    # Android 没有可映射到「可爱」的通用族名，只能内嵌一份（约 1.5MB）。
+    - family: ZCOOLKuaiLe
+      fonts:
+        - asset: assets/fonts/ZCOOLKuaiLe-Regular.ttf

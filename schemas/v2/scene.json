@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/scene.json",
+  "title": "SceneDef (stories/<情景 id>.json)",
+  "description": "一幕情景。**扁平结构**：文件名 stem 就是情景 id（文件里不写 id）；没有 enter / leave / exit 三层包装；时段（segment）概念已整套删除（没有 segment 字段、没有 setSegment、过场动画里不再有时段名）。文件可以是 JSONC：加载器解析前会剥掉 //、/* */ 注释与尾逗号，作者可以直接在字段旁边写说明。start.json 必须存在（入口固定 start）；背景图放在 stories/ 下，由 background 按文件名引用。",
+  "type": "object",
+  "required": ["displayName"],
+  "properties": {
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "情景展示名，左上角显示「第N天 · 展示名」（例如「白天·学校」）。"
+    },
+    "background": {
+      "type": ["string", "null"],
+      "description": "背景图文件名，相对于 stories/（例如 ji_q.png）；同一张图可被多幕复用。"
+    },
+    "narration": {
+      "type": "string",
+      "description": "入场词：展示在对话流顶部。"
+    },
+    "atmosphere": {
+      "type": "string",
+      "description": "换到本幕时过场动画里显示的那一句（地点氛围）。可空：过场仍会显示「第 N 天 / 情景名」，只是没有气氛句。"
+    },
+    "characters": {
+      "type": "array",
+      "description": "本幕出场角色。state/emotion 锁定本幕可用立绘（模型只能在这套内换表情）；scenePrompt 是**本情景**的额外提示词（把地点/时间/情境写清楚），角色基础人格在 characters/<id>/character.json 的 prompt 里。第一个角色同时是离场结算取证据的角色。",
+      "items": { "$ref": "#/$defs/actor" }
+    },
+    "fixedEffects": {
+      "type": "array",
+      "description": "进入本情景时执行的固定加减：value **正数为加、负数为减**（{\"id\":\"day\",\"value\":1} 就是 day+1），只能作用在 int/number 变量上，且 value 不能是 0。约定：`day+1` 写在**新一天第一个情景**的 fixedEffects 上（入场时才加，所以判定读到的 day 仍是本幕所属那一天）。",
+      "items": { "$ref": "#/$defs/change" }
+    },
+    "settlement": {
+      "type": "array",
+      "description": "离场结算：**每个受控变量一个块**（各自带判定提示词与单次上限）。引擎发一次请求把所有块的说明一起交给模型，每个增量按它自己那条块的 maxAbsDelta 收口；同一幕只结算一次（幂等键 = 存档 + 情景 + 访问号）。不写这个键（或空数组）= 本幕不结算。旧的扁平字段 judgePrompt / vars / maxAbsDelta / onNoEvidence 已不再读取（写了会被校验器报错：静默不结算比报错更糟）。",
+      "items": { "$ref": "#/$defs/settlementVar" }
+    },
+    "target": {
+      "type": "array",
+      "description": "出口块数组（唯一写法）。自上而下轮询，**首个 require 成立的块被锁定**；锁定后在该块的 kind 数组里**等概率**取一个。没有 require（或写空串）的块无条件成立，通常放最后当保底。**没有 target 是合法的**（校验只给 warning）：运行时返回「无出口」，界面提示玩家「暂时不能进入下一阶段噢」，玩家留在原情景继续对话。",
+      "items": { "$ref": "#/$defs/targetBlock" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "settlementVar": {
+      "type": "object",
+      "required": ["var", "prompt"],
+      "properties": {
+        "var": {
+          "type": "string",
+          "minLength": 1,
+          "description": "受 AI 控制的变量 id：必须是 manifest 注册过的 int/number 变量（可以是中文，例如「戒戒好感」）。同一幕里同一个变量只能出现一次。"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "**这一个变量**的判定提示词：出现什么表现算加、什么算减、看不出来怎么办。不要在这里写数值上限（那是 maxAbsDelta 的事），也不要提别的变量。"
+        },
+        "maxAbsDelta": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "这一个变量单次最多加减多少（逐维夹取，不是所有变量共用一个数字）。之后还会被变量自己的注册上下限夹住。"
+        },
+        "onNoEvidence": {
+          "enum": ["zero", "abort"],
+          "default": "zero",
+          "description": "拿不到证据时：zero = 这个变量保持原值、照常进入下一幕；abort = 拒绝整笔离场（保留原情景可重试）。有任一块写了 abort 且模型没给结果，整笔离场就会被拒。"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor": {
+      "type": "object",
+      "required": ["charId"],
+      "properties": {
+        "charId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "角色 id，必须存在 characters/<charId>/character.json。"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "description": "本幕锁定的状态，必须在该角色声明的 states 里。"
+        },
+        "emotion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "本幕锁定的起始情绪，必须在该角色声明的 emotions 里。"
+        },
+        "scenePrompt": {
+          "type": "string",
+          "description": "本情景的额外提示词：把地点、时间、当下情境写清楚。空着不会报错（只 warning），但模型只能靠基础人格猜。"
+        }
+      },
+      "additionalProperties": false
+    },
+    "change": {
+      "type": "object",
+      "required": ["id", "value"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "变量 id，必须在 manifest 注册过且是 int / number。"
+        },
+        "value": {
+          "type": "number",
+          "description": "正数为加、负数为减；不能为 0（什么都不做的条目会被校验器拦下）。"
+        }
+      },
+      "additionalProperties": false
+    },
+    "targetBlock": {
+      "type": "object",
+      "required": ["kind"],
+      "description": "出口块：可选的 require（中缀文本条件）+ 若干等概率目的地。story 与 event 用的是同一套结构、同一套判定。",
+      "properties": {
+        "require": {
+          "$ref": "condition.json",
+          "description": "中缀文本条件，见 condition.json。不写（或写空串）= 无条件成立，当保底用。"
+        },
+        "kind": {
+          "type": "array",
+          "minItems": 1,
+          "description": "锁定本块后等概率取一个：3 个各 1/3；其中两个指向同一目标就是 2/3。",
+          "items": { "$ref": "#/$defs/exitTarget" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "exitTarget": {
+      "type": "object",
+      "required": ["kind", "to"],
+      "properties": {
+        "kind": {
+          "enum": ["story", "event", "appShell"],
+          "description": "story → stories/<to>.json；event → events/<to>/；appShell → 回主页（to 写 home）。这里**没有权重字段**，块内一律等概率。"
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1,
+          "description": "目标的情景 id / 事件目录名 / home。指向不存在的 story 或 event 是校验错误。"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

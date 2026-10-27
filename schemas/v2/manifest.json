@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/manifest.json",
+  "title": "ChatGal package manifest v2",
+  "description": "包根 manifest.json：只留作者真正要填的东西 —— 包身份（packageId/version）、展示信息（name/author/description）与变量注册表（variables[]）。加载器解析前会先剥掉 //、/* */ 注释与尾逗号（JSONC），所以文件里可以写注释说明每个字段。已删除的字段（写进本 schema 之外都无效）：schemaVersion、engineCompatibility、entrypoints、characters、homeBackground、assetIndex、characterVariables、license、contentTags —— 它们是引擎层的固定约定（入口固定 stories/start.json、主页背景固定包根 home.png、角色由 characters/ 下的文件夹决定）或无人使用的元数据；加载器会静默忽略这些键，所以本 schema 把它们视为非法，避免作者继续写。",
+  "type": "object",
+  "required": ["packageId", "version", "name"],
+  "properties": {
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "包的唯一 id（例如 top.rongshangs.hellojj.default）。决定安装唯一性与存档绑定。"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "版本号**只能是数字**（例如 \"250\"），不能带字母或点；且只能往高版本升（打包脚本与 git HEAD 里那一份比较，低了直接 FATAL）。同时必须与 apps/chatgal 的 AppServices.defaultPackageVersion 逐字一致，否则「安装新版 → 清理旧版」会把刚装上的包删掉。",
+      "examples": ["250", "251"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "游戏内显示的包名（主页标题、包与存档页都用它）。"
+    },
+    "author": {
+      "type": "string",
+      "description": "可选。只影响展示。"
+    },
+    "description": {
+      "type": "string",
+      "description": "可选。包简介，显示在包卡片上。"
+    },
+    "variables": {
+      "type": "array",
+      "description": "变量注册表，**唯一来源**。系统变量与角色属性住在同一个扁平命名空间：注册后才能在 fixedEffects 里改、在 require / settlement[].prompt 里判断、在世界控制台里看到；未注册的 id 一律包非法。变量属主不再手动分组（characterVariables 已删除），由引擎按「最长的角色 id 前缀」推导（「戒戒好感」→ 角色「戒戒」；匹配不上即系统变量）。",
+      "items": { "$ref": "#/$defs/variable" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "variable": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "变量 id，全局唯一（id 重复在装载时直接报错）。角色属性习惯写中文「<角色名><属性名>」，例如「戒戒好感」；系统量用英文（例如 day）。"
+        },
+        "type": {
+          "enum": ["int", "number", "string", "bool", "enum"],
+          "description": "int 整数 / number 实数 / string 文本 / bool 布尔 / enum 受 enum 约束的字符串（fixedEffects 只能加减 int 与 number）。"
+        },
+        "default": {
+          "description": "新档初始值。会做类型与 min/max 校验。"
+        },
+        "min": {
+          "type": "number",
+          "description": "下限：结算与回合提案的最后一道夹取（min > max 会报错）。"
+        },
+        "max": {
+          "type": "number",
+          "description": "上限。"
+        },
+        "enum": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "仅 type = enum 时使用：允许的取值。"
+        },
+        "label": {
+          "type": "string",
+          "description": "世界控制台里显示给人看的短名（例如 id 是「戒戒好感」，label 写「好感」）。"
+        },
+        "description": {
+          "type": "string",
+          "description": "可选。给作者自己看的说明。"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "displayName": "下午·外面",
+  "background": "store_y.png",
+  "narration": "下午出了门。街道在太阳底下懒洋洋的。",
+  "atmosphere": "阳光斜下来，街道有点懒。",
+  "characters": [
+    {
+      "charId": "戒戒",
+      "state": "便服猫化",
+      "emotion": "开心",
+      "scenePrompt": "你是戒戒，半人半猫。下午，外面，街边或小店附近。她今天心情还行，话比平时多一两句，但仍是短句。\n桥段可以挑一两个自然带出来：\n1. 她对着橱窗里的鱼干移不开眼。\n2. 风把纸杯吹跑，她小跑着追回来。\n3. 她把找零硬币按进你手心：帮我拿着。"
+    }
+  ],
+
+  //下午不改天数：新的一天从白天开始
+  "fixedEffects": [],
+
+  "settlement": [
+    {
+      "var": "戒戒好感",
+      "prompt": "她是不是更黏你、更依赖你了？有具体举动才加分；明显疏远就扣分；看不出来就是 0。",
+      "maxAbsDelta": 2,
+      "onNoEvidence": "zero"
+    }
+  ],
+
+  "target": [
+    {
+      "kind": [
+        { "kind": "story", "to": "day_night" }
+      ]
+    }
+  ]
+}

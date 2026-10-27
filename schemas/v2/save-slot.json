@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/save-slot.json",
+  "title": "SaveSlot v3（分区形状）",
+  "description": "与 SaveSlot.toJson() 一一对应。存档是**分区**的：identity / package / progress / world / messages / memory / eventLedger 各占一块，写盘时缩进 2 格（存档是给人看/给人查的）。世界事实全在 world（含扁平变量命名空间）；记忆阈值不落盘（属于游戏外设置）；全量聊天记录在 messages —— 移出 L1 窗口只是不再送模型，不是删除。开发版不做旧档兼容：saveSchemaVersion 不是 3 一律锁档。",
+  "type": "object",
+  "required": [
+    "saveSchemaVersion",
+    "identity",
+    "package",
+    "progress",
+    "world",
+    "messages",
+    "memory",
+    "eventLedger"
+  ],
+  "properties": {
+    "saveSchemaVersion": { "const": 3 },
+    "identity": {
+      "type": "object",
+      "description": "这份存档是谁：文件名用的 saveId、事务历史身份 sessionId、显示名与两个时间戳、当前修订号。",
+      "required": [
+        "saveId",
+        "sessionId",
+        "label",
+        "createdAt",
+        "updatedAt",
+        "revision"
+      ],
+      "properties": {
+        "saveId": { "type": "string", "minLength": 1 },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "**事务历史身份**（不是文件身份）：结算/换幕的幂等 id 都带它。复制/导入只换 saveId，不换它。"
+        },
+        "label": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "revision": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "package": {
+      "type": "object",
+      "description": "这份存档当初绑的内容包（id + 版本 + 内容哈希）。同 id 的包还在就放行，界面用这里显示它原来绑的是哪一版。",
+      "required": ["packageId", "version", "contentHash"],
+      "properties": {
+        "packageId": { "type": "string" },
+        "version": { "type": "string" },
+        "contentHash": { "type": "string" },
+        "displayName": { "type": ["string", "null"] },
+        "coverAssetId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "progress": {
+      "type": "object",
+      "description": "跑到哪了：当前情景 + 运行位（游标）、两张幂等台账、以及未完成的挂起操作。",
+      "required": [
+        "storyId",
+        "cursor",
+        "committedTransitions",
+        "appliedSettlementIds"
+      ],
+      "properties": {
+        "storyId": { "type": "string" },
+        "cursor": {
+          "type": "object",
+          "required": ["mode"],
+          "properties": {
+            "mode": { "enum": ["storyChat", "eventPlay"] },
+            "storyId": { "type": ["string", "null"] },
+            "visitId": { "type": ["integer", "null"] },
+            "eventId": { "type": ["string", "null"] },
+            "slideIndex": { "type": ["integer", "null"], "minimum": 0 },
+            "eventVisitId": {
+              "type": ["integer", "null"],
+              "description": "事件访问号：累计递增，决定收尾事务的 commitId"
+            }
+          },
+          "additionalProperties": false
+        },
+        "committedTransitions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "已提交的换幕/事件收尾 id（tr_… / ef_…），重放时不再重复执行"
+        },
+        "appliedSettlementIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "离场结算幂等键：sid_<sessionId>_<情景 id>_v<访问号>。离场结算「一幕一条、无条件触发」，所以一幕只会有一条；重放/重试不再重复加减。"
+        },
+        "pending": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["kind", "id", "baseRevision", "phase", "cache"],
+              "properties": {
+                "kind": {
+                  "enum": ["collapse", "storyTransition", "eventFinish"]
+                },
+                "id": { "type": "string", "minLength": 1 },
+                "baseRevision": { "type": "integer", "minimum": 0 },
+                "phase": { "type": "string" },
+                "cache": { "type": ["object", "null"] }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "world": {
+      "type": "object",
+      "description": "世界事实（权威快照）。聊天文本从不直接改这里，只有「入场改值 + 离场结算」会动它。",
+      "required": [
+        "variables",
+        "characters",
+        "eventHistory",
+        "story",
+        "presentation",
+        "rngState"
+      ],
+      "properties": {
+        "variables": {
+          "type": "object",
+          "description": "扁平命名空间：系统变量与角色变量（可能是中文 id）都在这一个表里",
+          "additionalProperties": true
+        },
+        "characters": { "type": "object" },
+        "eventHistory": { "type": "object" },
+        "story": {
+          "type": "object",
+          "description": "只是**镜像**：storyId 由 progress.cursor 决定，day 的权威是 world.variables['day']。没有 segment（时段概念已整套删除）。",
+          "additionalProperties": true
+        },
+        "presentation": {
+          "type": "object",
+          "description": "画面状态：当前背景、入场词、出场角色、当前表情（appearance.expressionId）、待播开场标记"
+        },
+        "rngState": {
+          "type": "integer",
+          "description": "出口块内等概率随机用的计数器；同一份存档回放结果一致"
+        }
+      },
+      "additionalProperties": false
+    },
+    "messages": {
+      "type": "array",
+      "description": "全量聊天记录（移出 L1 窗口只是不再送模型，不是删除）。一条 = 谁说的 + 说了什么。",
+      "items": {
+        "type": "object",
+        "required": ["kind", "text"],
+        "properties": {
+          "kind": {
+            "enum": ["scene", "player", "character", "system"],
+            "description": "scene = 场景卡（第 N 天 · 情景名 + 入场词）；player = 玩家；character = 角色台词；system = 其它系统提示"
+          },
+          "speaker": {
+            "type": "string",
+            "description": "**在场的角色**（默认包一幕一人，所以就是说话的那位；多人在场时以 segments 里的 speakerId 为准）"
+          },
+          "text": { "type": "string" },
+          "turnId": {
+            "type": "string",
+            "description": "回合 id：一张玩家消息与它对应的角色回复共用同一个；与记忆窗口的轮次记账对齐"
+          },
+          "segments": {
+            "type": "array",
+            "description": "角色回复的逐段拆分（每段文本 + 当段的立绘/表情），**原样保留在存档里**。注意：读档后的消息流是由 L1 活跃窗口重建的（chat_page 的 _rebuildStreamFromWindow），逐段立绘目前还没走恢复路径 —— 这一项是留给模型上下文与后续按段重放的原始数据。"
+          },
+          "audience": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "这一轮在场的角色：角色不会自动知道自己不在场的对话"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "memory": {
+      "type": "object",
+      "description": "每个角色一棵记忆树 + 一个 L1 活跃窗口；不含任何阈值（阈值属于游戏外设置）。",
+      "properties": {
+        "trees": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "layers": { "type": "object" },
+              "events": { "type": "array" },
+              "processed": { "type": "array" }
+            }
+          }
+        },
+        "windows": {
+          "type": "object",
+          "additionalProperties": { "type": "array" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "eventLedger": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "事件收集台账：已触发过的事件 id（就是 events/<事件 id>/ 的文件夹名；世界控制台显示同一个名字）"
+    }
+  },
+  "additionalProperties": true
+}

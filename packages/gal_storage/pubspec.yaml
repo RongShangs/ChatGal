@@ -1,0 +1,19 @@
+name: gal_storage
+description: "SQLite persistence, package install, save repository."
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  archive: ^4.0.2
+  crypto: ^3.0.3
+  gal_protocol:
+    path: ../gal_protocol
+  meta: ^1.15.0
+  path: ^1.9.0
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.25.0

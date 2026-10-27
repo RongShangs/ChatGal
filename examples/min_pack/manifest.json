@@ -1,0 +1,18 @@
+{
+  //最小示例包：三个情景 + 一个结局事件，start → s1 → s2 →（循环）→ s1
+  //这个包同时是校验器的夹具，所以刻意保留了 // 注释（加载器必须能剥掉注释再解析）
+  "packageId": "example.min_pack",
+  "version": "1",
+  "name": "最小示例包",
+  "author": "ChatGal",
+  "description": "三个情景 + 一个结局事件的最小包：start → s1 → s2 → 循环。",
+
+  //注册变量：注册后才能在 fixedEffects 里改、在 require 里判断
+  "variables": [
+    { "id": "day", "type": "int", "default": 1, "min": 1 },
+
+    //可见变量：会在世界控制台对玩家可见
+    { "id": "demo好感", "type": "int", "default": 50, "min": 0, "max": 100, "label": "好感" },
+    { "id": "demo信任", "type": "int", "default": 50, "min": 0, "max": 100, "label": "信任" }
+  ]
+}

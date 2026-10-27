@@ -1,0 +1,29 @@
+{
+  "displayName": "第 1 天 · 傍晚",
+  "background": "bg.png",
+  "narration": "【傍晚】你们并肩走回去。",
+  "atmosphere": "放学的铃声散了，路上只剩脚步声。",
+
+  "characters": [
+    {
+      "charId": "demo",
+      "state": "便服",
+      "emotion": "平常",
+      "scenePrompt": "傍晚的放学路上，你们两个一起走。她愿意多说一两句，但被问到心事还是会岔开话题。"
+    }
+  ],
+
+  //新一天的第一个情景：day 加 1
+  "fixedEffects": [
+    { "id": "day", "value": 1 }
+  ],
+
+  "judgePrompt": "根据本场景对话给「demo好感」「demo信任」的整数增量；无明确证据则全 0。只输出 JSON：{\"deltas\":{\"demo好感\":0,\"demo信任\":0}}",
+  "vars": ["demo好感", "demo信任"],
+  "maxAbsDelta": 3,
+  "onNoEvidence": "zero",
+
+  "target": [
+    { "kind": [ { "kind": "story", "to": "s2" } ] }
+  ]
+}

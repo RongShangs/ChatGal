@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/event.json",
+  "title": "EventDef (events/<事件 id>/event.json)",
+  "description": "结局/演出事件。**文件夹名就是事件 id 与显示名**（event.json 里不再写 id / name；世界控制台显示的就是文件夹名）。播放：**一块 = 一屏**（一张图 + 这一屏的全部文字），点一下翻下一块；块内多句换行显示在同一屏。文件可以是 JSONC（// 与 /* */ 注释、尾逗号都会被剥掉）。已删除的字段：onFinish / effects / unlockEnding / endingId —— 播完之后走的是**和情景完全一样**的 target 出口判定（同格式、同判定、同等概率）；结局 id 变量已删除，事件「已触发」只靠存档台账 pendingGalleryUnlocks。",
+  "type": "object",
+  "required": ["slides"],
+  "allOf": [
+    {
+      "description": "出口二选一：`target`（条件 + 等概率）与 `choice`（玩家自己选）不能同时写；两个都不写是合法的（播完提示「暂时不能进入下一阶段」）。",
+      "not": { "required": ["target", "choice"] }
+    }
+  ],
+  "properties": {
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "description": "画面块数组：**一块 = 一屏**（一张图 + 这一屏的全部文字），点一下翻下一块。",
+      "items": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "image": {
+            "type": ["string", "null"],
+            "description": "图片文件名，相对于本事件目录（例如 cover.png）；写 null 或省略 = 沿用上一张图（连续几屏共用一张 CG）。图片必须真实存在，否则校验报错。"
+          },
+          "text": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "这一屏的文字（不是单个字符串）：一行一句，全部换行显示在同一屏里。空数组 = 空白一屏，只给 warning。"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "target": {
+      "type": "array",
+      "description": "出口块数组：与故事情景 **完全同格式、同判定**（见 scene.json 的 targetBlock）：自上而下首个 require 成立的块被锁定，块内等概率。没有 target（或所有块都不成立）不是错误：事件正常收尾并提示「暂时不能进入下一阶段噢」。**与 choice 二选一**：两个都写时校验报错（运行时只用 choice）。",
+      "items": { "$ref": "scene.json#/$defs/targetBlock" }
+    },
+    "choice": {
+      "type": "object",
+      "description": "**选择题出口（事件专有）**：播完最后一屏后，把选项铺在屏幕上让玩家点，点哪个就去哪个 —— 不判数值、不随机。与 target 二选一。典型用法：「回主页，还是继续留在这里」。",
+      "required": ["options"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "选项上方的标题（可留空），例如「要继续留在这里吗？」。"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "description": "选项列表：最多 5 个，顺序就是屏幕上的顺序。",
+          "items": {
+            "type": "object",
+            "required": ["text", "kind", "to"],
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "description": "按钮上显示的字（玩家看到的那句话），例如「回到主页」。"
+              },
+              "kind": {
+                "type": "string",
+                "enum": ["story", "event", "appShell"],
+                "description": "去哪：情景 / 事件 / 回主页（appShell 的 to 固定写 home）。"
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1,
+                "description": "目的地 id（情景文件名 stem 或事件文件夹名；appShell 写 home）。必须存在，否则校验报错。"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

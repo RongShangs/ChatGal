@@ -1,0 +1,24 @@
+{
+  //内容包基础信息：packageId 决定内容包安装的唯一性，也决定存档能否继续使用
+  "packageId": "top.rongshangs.hellojj.default",
+  //版本号只能是数字，而且只能往高版本升（打包时会强制比较，低了直接失败）
+  "version": "264",
+  //游戏内显示的包名：主页标题、内容包与存档页都用它
+  "name": "你好戒戒",
+  "author": "戎Shang / ChatGal migration",
+  "description": "与戒戒从零开始的每一天，平淡无波的日常之下异变正在酝酿...",
+
+  //注册变量：注册后才能在 fixedEffects 里改、在 require 里判断、在世界控制台里看到
+  "variables": [
+    //系统变量：天数。day 请一定要保留，剧情分支全靠它
+    //默认 0：开局进 start 时由入场改值 +1 = 第 1 天（新的一天也是这么 +1 的）
+    //不写 min/max = 不设上下限（上限留空就是不限制天数）
+    { "id": "day", "type": "int", "default": 0 },
+  
+    //可见变量：会在世界控制台对玩家可见
+    { "id": "戒戒好感", "type": "int", "default": 50, "min": 0, "max": 100, "label": "好感" },
+    { "id": "戒戒信任", "type": "int", "default": 50, "min": 0, "max": 100, "label": "信任" },
+    { "id": "戒戒服从", "type": "int", "default": 50, "min": 0, "max": 100, "label": "服从" },
+    { "id": "戒戒堕落", "type": "int", "default": 0, "min": 0, "max": 100, "label": "堕落" }
+  ]
+}

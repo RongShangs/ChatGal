@@ -1,0 +1,17 @@
+{
+  //教学演示包：只有早/午/晚三幕，循环出口。用来理解「stories 的 target 出口」
+  "packageId": "top.rongshangs.hellojj.daily",
+  "version": "9",
+  "name": "与戒戒的每一天",
+  "author": "戎Shang / ChatGal",
+  //包简介：面向玩家的剧情文案（教学说明留在上面的文件注释里，不上主页）
+  "description": "和可爱的猫娘戒戒在一起的幸福生活",
+
+  "variables": [
+    //day 默认 0：本包三幕循环，白天（stories/start.json）是新一天的开始，
+    //day +1 就写在它的入场改值里 —— 开新游戏时 0+1 恰好是第 1 天，
+    //之后每次从晚上回到白天都会 +1。不想让天数变，就不要写这条改值。
+    { "id": "day", "type": "int", "default": 0 },
+    { "id": "戒戒好感", "type": "int", "default": 50, "min": 0, "max": 100, "label": "好感" }
+  ]
+}

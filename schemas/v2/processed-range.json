@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/processed-range.json",
+  "title": "ProcessedRange",
+  "type": "object",
+  "required": ["charId", "storyId", "visitId", "fromMsgId", "toMsgId", "turnIds"],
+  "properties": {
+    "charId": { "type": "string" },
+    "storyId": { "type": "string" },
+    "visitId": { "type": "integer", "minimum": 0 },
+    "fromMsgId": { "type": "string" },
+    "toMsgId": { "type": "string" },
+    "turnIds": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "producedMemIds": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

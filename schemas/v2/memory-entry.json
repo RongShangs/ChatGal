@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chatgal.local/schemas/v2/memory-entry.json",
+  "title": "MemoryEntry",
+  "type": "object",
+  "required": ["memId", "layer", "status", "owner", "text", "audience", "createdAt"],
+  "properties": {
+    "memId": { "type": "string", "minLength": 1 },
+    "layer": { "type": "integer", "enum": [2, 3, 4, 5] },
+    "status": { "enum": ["active", "superseded"] },
+    "aggregatedInto": { "type": ["string", "null"] },
+    "owner": { "type": "string", "minLength": 1 },
+    "text": { "type": "string" },
+    "sourceMemIds": { "type": ["array", "null"], "items": { "type": "string" } },
+    "source": {
+      "type": "object",
+      "required": ["kind", "sourceKnown"],
+      "properties": {
+        "kind": {
+          "enum": ["l1Collapse", "sceneLeave", "cascade", "l5Update"]
+        },
+        "storyId": { "type": ["string", "null"] },
+        "visitId": { "type": ["integer", "null"] },
+        "messageIdRange": { "type": ["array", "null"], "items": { "type": "string" }, "minItems": 2, "maxItems": 2 },
+        "turnIds": { "type": ["array", "null"], "items": { "type": "string" } },
+        "dayRange": { "type": ["array", "null"], "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 },
+        "sourceKnown": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "sourceScenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["storyId", "visitId"],
+        "properties": {
+          "storyId": { "type": "string" },
+          "visitId": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "replaces": { "type": ["array", "null"], "items": { "type": "string" } },
+    "l5ReviewedBy": { "type": ["string", "null"] },
+    "createdAt": { "type": "string" }
+  },
+  "additionalProperties": false
+}

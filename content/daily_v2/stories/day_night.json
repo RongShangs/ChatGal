@@ -1,0 +1,35 @@
+{
+  "displayName": "晚上·家里",
+  "background": "ji_y.png",
+  "narration": "晚上回到家。灯亮着，今天差不多了。",
+  "atmosphere": "灯一盏盏亮起来，该回家了。",
+  "characters": [
+    {
+      "charId": "戒戒",
+      "state": "睡裙猫化",
+      "emotion": "害羞",
+      "scenePrompt": "你是戒戒，半人半猫。晚上，家里。她有点不好意思，但更愿意待在你旁边，动作轻、话少。\n桥段可以挑一两个自然带出来：\n1. 她把洗好的袜子叠成小方块。\n2. 窗台有野猫，她看了很久。\n3. 她把你的拖鞋摆正。"
+    }
+  ],
+
+  //晚上不改天数：day+1 属于「新一天的开始」，写在「白天·上学」那一幕里。
+  "fixedEffects": [],
+
+  "settlement": [
+    {
+      "var": "戒戒好感",
+      "prompt": "她是不是更安心地待在你身边了？有具体举动才加分；明显抗拒就扣分；看不出来就是 0。",
+      "maxAbsDelta": 2,
+      "onNoEvidence": "zero"
+    }
+  ],
+
+  //闭环出口：又回到 start。target 不必指向「更高级」的幕，循环日常完全合法。
+  "target": [
+    {
+      "kind": [
+        { "kind": "story", "to": "start" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "displayName": "第 1 天 · 晚上",
+  "background": "bg.png",
+  "narration": "【晚上】灯灭了，她还在客厅。",
+  "atmosphere": "屋里只留了一盏小灯，影子拉得很长。",
+
+  "characters": [
+    {
+      "charId": "demo",
+      "state": "睡裙",
+      "emotion": "平常",
+      "scenePrompt": "夜里，她已经换上睡裙。这一天的最后一幕：她累了，愿意把白天没说出口的话讲完。"
+    }
+  ],
+
+  "fixedEffects": [],
+
+  "judgePrompt": "根据本场景对话给「demo好感」「demo信任」的整数增量；无明确证据则全 0。只输出 JSON：{\"deltas\":{\"demo好感\":0,\"demo信任\":0}}",
+  "vars": ["demo好感", "demo信任"],
+  "maxAbsDelta": 3,
+  "onNoEvidence": "zero",
+
+  "target": [
+    { "kind": [ { "kind": "story", "to": "s1" } ] }
+  ]
+}

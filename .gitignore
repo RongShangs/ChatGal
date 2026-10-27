@@ -1,0 +1,38 @@
+﻿# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+
+# Android
+**/android/.gradle/
+**/android/.kotlin/
+**/android/local.properties
+**/android/app/.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (should never be committed)
+**/api_settings.json
+**/*secret*
+**/*key*.pem
+
+# Local settings, credentials, signing material and generated files
+.env
+.env.*
+!.env.example
+**/app_settings.json
+**/key.properties
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.pfx
+**/__pycache__/
+*.pyc
+*.log
+coverage/

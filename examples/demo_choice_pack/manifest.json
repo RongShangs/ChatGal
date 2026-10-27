@@ -1,0 +1,16 @@
+{
+  //选择题演示包：一个情景 → 一个「带选择题出口」的事件。
+  //只用来看事件最后一屏铺出选项是什么效果，**不内置进应用**（不进 assets / pubspec）。
+  "packageId": "example.demo_choice",
+  "version": "1",
+  "name": "选择题演示",
+  "author": "ChatGal",
+  "description": "一个情景接一个事件：事件播到最后一屏时，屏幕上会铺出选项按钮，点哪个去哪个。",
+
+  //注册变量：注册后才能在 fixedEffects 里改、在 require 里判断、在世界控制台里看到
+  "variables": [
+    //day 默认 0：入口 start 的入场改值 +1 就是第 1 天（与两个内置包同一套约定）
+    { "id": "day", "type": "int", "default": 0 },
+    { "id": "demo好感", "type": "int", "default": 50, "min": 0, "max": 100, "label": "好感" }
+  ]
+}
